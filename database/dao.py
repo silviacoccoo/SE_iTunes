@@ -36,10 +36,15 @@ class DAO:
         cursor = conn.cursor(dictionary=True)
 
         query="""
-        select distinct t1.album_id as id_album1, t2.album_id as id_album2
-        from track t1, track t2, playlist_track pt1, playlist_track pt2
-        where t1.id=pt1.track_id and t2.id=pt2.track_id
-                and t1.album_id<t2.album_id and pt1.playlist_id=pt2.playlist_id 
+        SELECT DISTINCT T1.album_id as id_album1, T2.album_id as id_album2
+        FROM 
+            (SELECT DISTINCT pt.playlist_id, t.album_id
+             FROM playlist_track pt, track t 
+             WHERE pt.track_id = t.id) T1,
+            (SELECT DISTINCT pt.playlist_id, t.album_id
+             FROM playlist_track pt, track t 
+             WHERE pt.track_id = t.id) T2
+        WHERE T1.playlist_id = T2.playlist_id AND T1.album_id < T2.album_id
         """
         cursor.execute(query)
 
