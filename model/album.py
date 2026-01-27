@@ -4,8 +4,7 @@ from dataclasses import dataclass
 class Album:
     id_album: int
     nome_album: str
-    id_canzone: int
-    nome_canzone: str
+    durata_album: float
 
     def __str__(self):
         return self.nome_album
