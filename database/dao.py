@@ -12,12 +12,12 @@ class DAO:
         cursor = conn.cursor(dictionary=True)
 
         query="""
-        select al.id as id_album, al.title as nome_album, (sum(t.milliseconds)/(1000*60)) as durata_album
+        select al.id as id_album, al.title as nome_album, (sum(t.milliseconds)/(60000.0)) as durata_album
         from track t, album al
         where al.id=t.album_id 
         group by al.id
         """
-
+        # Metto 60000.0 per essere sicura si float
         cursor.execute(query)
 
         for row in cursor:
