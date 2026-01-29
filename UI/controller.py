@@ -19,6 +19,17 @@ class Controller:
 
         # Creo il grafo
         self._model.build_graph(d)
+        self._current_album=None # RESET
+        n_nodes = self._model.get_num_nodes()
+
+        if n_nodes == 0:
+            self._view.show_alert("Attenzione: Il grafo è vuoto! Prova con una durata inferiore.")
+
+            # Pulisco comunque la vista e il dropdown per coerenza
+            self._view.lista_visualizzazione_1.controls.clear()
+            self.fill_dropdown()  # Questo svuoterà il menu
+            self._view.update()
+            return
 
         self._view.lista_visualizzazione_1.controls.clear()
         self._view.lista_visualizzazione_1.controls.append(
@@ -77,7 +88,7 @@ class Controller:
             self._view.show_alert("L'album non fa parte del grafo")
             return
 
-        dimensione, durata=self._model.get_connected_components(self._current_album)
+        dimensione, durata, _ =self._model.get_connected_components(self._current_album)
 
         self._view.lista_visualizzazione_2.controls.clear()  # Reset
 
@@ -91,4 +102,44 @@ class Controller:
     # TERZO BOTTONE
     def handle_get_set_album(self, e):
         """ Handler per gestire il problema ricorsivo di ricerca del set di album """""
+        # Parametri per get_best_solution
+
+        a=self._current_album # Album inserito nel 2 riquadro
+        if a is None:
+            self._view.show_alert('Selezionare un album dal grafo!')
+            return
+        if a not in self._model.get_nodes():
+            self._view.show_alert("L'album non fa parte del grafo")
+            return
+
+        d_tot_str=self._view.txt_durata_totale.value
+        if not d_tot_str:
+            self._view.show_alert('Inserire la durata totale massima!')
+            return
+        try:
+            d_tot=float(d_tot_str) # Valore inserito nel 3 riquadro
+        except ValueError:
+            self._view.show_alert('Inserire un valore numerico')
+            return
+
+        best_set=self._model.get_best_solution(a, d_tot) # Lista di oggetti album
+
+        self._view.lista_visualizzazione_3.controls.clear() # Reset
+
+        if not best_set:
+            self._view.lista_visualizzazione_3.controls.append(
+                ft.Text('Nessun set trovato')
+            )
+        # Altrimenti
+        durata_reale=sum(album.durata_album for album in best_set)
+
+        self._view.lista_visualizzazione_3.controls.append(
+            ft.Text(f'Set trovato (album {len(best_set)}, durata {durata_reale:.2f} minuti):')
+        )
+        for album in best_set:
+            self._view.lista_visualizzazione_3.controls.append(
+            ft.Text(f'-{album.nome_album} ({album.durata_album:.2f} min)')
+        )
+
+        self._view.update()
         # TODO

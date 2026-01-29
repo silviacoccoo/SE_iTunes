@@ -15,6 +15,9 @@ class Model:
         # Se non le chiamassi le liste sarebbero vuote e non verrebbe popolato il grafo !!!
         self.load_album_validi() # Devo chiamarlo, altrimenti la funzione build graph itera su una lista vuota
 
+        self.best_solution=[]
+        self.max_num_albums = 0
+
     # Gli album che faranno parte del grafo come vertici
     def load_album_validi(self):
         self._lista_album_validi=DAO.get_album_validi()
@@ -66,6 +69,7 @@ class Model:
         return self.G.nodes()
 
     def get_connected_components(self,a):
+        # Il parametro a è un oggetto
         set_connected_component_for_a=nx.node_connected_component(self.G,a) # é l'insieme dei nodi che fanno parte della componente connessa in cui c'è il nodo n
         # Insieme di nodi raggiungibili da n
         dimensione=len(set_connected_component_for_a)
@@ -75,4 +79,49 @@ class Model:
             d=float(s.durata_album)
             d_tot+=d
 
-        return dimensione, d_tot
+        return dimensione, d_tot, list(set_connected_component_for_a)
+
+    # PUNTO 2 RICORSIONE
+    def get_best_solution(self,a,d_tot):
+        """ Prepara i dati e lancia la ricorsione"""
+
+        # Reset variabili per la soluzione migliore
+        self.best_solution=[]
+        self.max_num_albums = 0
+
+        # Recupero della componente connessa
+        _, _, comp_connessa=self.get_connected_components(a) # a è un oggetto
+        candidati= [ c for c in comp_connessa if c.id_album != a.id_album]
+        # Lista di oggetti in ordine crescente
+        candidati.sort(key=lambda x: x.durata_album) # Ordino in modo crescente
+
+        parziale=[a]
+        durata_iniziale=a.durata_album # Durata dell'album iniziale
+
+        if durata_iniziale > d_tot: # Se già sfora la durata limite non lancio neanche la ricorsione
+            return []
+
+        # Lancio della ricorsione, i parametri devono essere inizializzati in questa funzione
+        self.ricorsione(parziale,candidati,d_tot,durata_iniziale)
+        # Deve ritornare un valore in quanto corrisponde alla funzione che chiamiamo nel controller alla pressione del pulsante
+        return self.best_solution
+
+    def ricorsione(self,sol_parziale, album_rimanenti, durata_max, durata_corrente):
+        # Caso terminale: se supero il limite, mi fermo
+        if durata_corrente>durata_max:
+            return
+
+        # Caso ricorsivo: in questo caso la soluzione è valida
+        elif durata_corrente<=durata_max:
+
+            if len(sol_parziale) > self.max_num_albums:
+                self.max_num_albums=len(sol_parziale)
+                self.best_solution=list(sol_parziale)
+
+            # Altrimenti
+            for i, album in enumerate(album_rimanenti): # Itero sugli album rimanenti
+                sol_parziale.append(album)
+                self.ricorsione(sol_parziale, album_rimanenti[i+1:],durata_max,durata_corrente+album.durata_album)
+                sol_parziale.pop()
+
+
