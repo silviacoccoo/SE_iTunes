@@ -49,6 +49,7 @@ class Model:
         if not self._lista_album_connessi:
             self.load_album_connessi() # Carico gli archi che non ci sono ancora
 
+        """
         for id_a1,id_a2 in self._lista_album_connessi:
             # Devo controllare che gli album si trovino nella lista dei nodi
             if id_a1 in self.id_map and id_a2 in self.id_map:
@@ -56,6 +57,17 @@ class Model:
                 a2=self.id_map[id_a2]
                 if self.G.has_node(a1) and self.G.has_node(a2):
                     self._edges.append((a1, a2)) # Aggiungo alla lista self._edges le tuple
+
+        self.G.add_edges_from(self._edges)
+        """
+
+        all_edges = DAO.get_album_connessi() # lista tuple da 2 elementi che sono gli id
+        for e in all_edges:
+            if e[0] in self.id_map and e[1] in self.id_map:
+                album1=self.id_map[e[0]]
+                album2=self.id_map[e[1]]
+                if self.G.has_node(album1) and self.G.has_node(album2):
+                    self._edges.append((album1, album2))
 
         self.G.add_edges_from(self._edges)
 
@@ -105,23 +117,31 @@ class Model:
         self.ricorsione(parziale,candidati,d_tot,durata_iniziale)
         # Deve ritornare un valore in quanto corrisponde alla funzione che chiamiamo nel controller alla pressione del pulsante
         return self.best_solution
+        # RITORNA UNA LISTA BEST SOLUTION CHE SI AGGIORNA NELLA RICORSIONE
 
     def ricorsione(self,sol_parziale, album_rimanenti, durata_max, durata_corrente):
-        # Caso terminale: se supero il limite, mi fermo
+        # CASO TERMINALE: se supero il limite, mi fermo
         if durata_corrente>durata_max:
             return
 
         # Caso ricorsivo: in questo caso la soluzione è valida
         elif durata_corrente<=durata_max:
 
+            # BEST SOLUTION CHECK --> SI AGGIORNA LA SOLUZIONE MIGLIORE
             if len(sol_parziale) > self.max_num_albums:
                 self.max_num_albums=len(sol_parziale)
-                self.best_solution=list(sol_parziale)
+                self.best_solution=list(sol_parziale) # SE LA PARZIALE SODDISFA LE CONDIZIONI DIVENTA LA NUOVA BEST SOLUTION
 
-            # Altrimenti
+            # ESPLORAZIONE: LOOP & BACKTRACKING --> SI POPOPLA LA SOLUZIONE PARZIALE
             for i, album in enumerate(album_rimanenti): # Itero sugli album rimanenti
+
+                # AGGIUNGO ALLA PARZIALE GLI ELEMENTI
                 sol_parziale.append(album)
+
+                # RICORSION
                 self.ricorsione(sol_parziale, album_rimanenti[i+1:],durata_max,durata_corrente+album.durata_album)
+
+                # BACKTRACKING
                 sol_parziale.pop()
 
 

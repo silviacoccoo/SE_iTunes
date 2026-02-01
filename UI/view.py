@@ -87,6 +87,7 @@ class View:
 
         self.page.scroll = "adaptive"
         self.page.update()
+        self.controller.fill_dropdown()
 
     def cambia_tema(self, e):
         """ Cambia tema scuro/chiaro """

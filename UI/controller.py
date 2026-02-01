@@ -102,8 +102,7 @@ class Controller:
     # TERZO BOTTONE
     def handle_get_set_album(self, e):
         """ Handler per gestire il problema ricorsivo di ricerca del set di album """""
-        # Parametri per get_best_solution
-
+        # Parametri per get_best_solution: album oggetto e durata
         a=self._current_album # Album inserito nel 2 riquadro
         if a is None:
             self._view.show_alert('Selezionare un album dal grafo!')
@@ -122,6 +121,7 @@ class Controller:
             self._view.show_alert('Inserire un valore numerico')
             return
 
+        # RISULTATO DELLA FUNZIONE WRAPPER, CHE NEL MODEL CHIAMA LA RICORSIONE
         best_set=self._model.get_best_solution(a, d_tot) # Lista di oggetti album
 
         self._view.lista_visualizzazione_3.controls.clear() # Reset
